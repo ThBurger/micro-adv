@@ -1,17 +1,19 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { RippleModule } from 'primeng/ripple';
 import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
+import { AuthService } from '../../auth.service';
 
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [ButtonModule, CheckboxModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, AppFloatingConfigurator],
+    imports: [CommonModule, ButtonModule, CheckboxModule, InputTextModule, PasswordModule, FormsModule, RouterModule, RippleModule, AppFloatingConfigurator],
     template: `
         <app-floating-configurator />
         <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-screen overflow-hidden">
@@ -54,7 +56,8 @@ import { AppFloatingConfigurator } from '../../layout/component/app.floatingconf
                                 </div>
                                 <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                             </div>
-                            <p-button label="Sign In" styleClass="w-full" routerLink="/"></p-button>
+                            <div *ngIf="errorMessage" class="text-red-600 mb-4">{{errorMessage}}</div>
+                            <p-button label="Sign In" styleClass="w-full" (click)="signIn()"></p-button>
                         </div>
                     </div>
                 </div>
@@ -68,4 +71,18 @@ export class Login {
     password: string = '';
 
     checked: boolean = false;
+
+    errorMessage: string | null = null;
+
+    constructor(private auth: AuthService, private router: Router) {}
+
+    async signIn() {
+        this.errorMessage = null;
+        try {
+            await this.auth.signIn(this.email, this.password);
+            this.router.navigate(['/dashboard']);
+        } catch (err: any) {
+            this.errorMessage = err?.message || 'Login failed';
+        }
+    }
 }
